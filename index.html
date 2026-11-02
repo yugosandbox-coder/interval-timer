@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>45メニュー インターバルタイマー</title>
+<meta name="theme-color" content="#111315">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="インターバル">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<style>
+  :root{
+    --bg:#111315; --panel:#1b1e21; --line:#2a2e33; --text:#f2f2ef; --muted:#9aa0a6;
+    --work:#ff6a3d; --rest:#2fc4a8; --prep:#8a8f98; --accent:#ffd166;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 28px}
+  h1{font-size:20px;margin:6px 0 4px;letter-spacing:.02em}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  input[type=number],textarea{width:100%;background:#0d0f11;color:var(--text);border:1px solid var(--line);
+    border-radius:10px;padding:10px;font-size:16px;font-family:inherit}
+  textarea{min-height:220px;line-height:1.6;resize:vertical}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .toggle{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text)}
+  .toggle input{width:20px;height:20px;accent-color:var(--work)}
+  .total{font-size:14px;color:var(--muted)}
+  .total b{color:var(--accent);font-size:18px}
+  button{font-family:inherit;border:0;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;
+    padding:14px 16px;color:#111;background:var(--text)}
+  button.primary{background:var(--work);color:#fff;width:100%;font-size:18px;padding:16px}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  button.small{padding:8px 12px;font-size:13px;font-weight:600}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+  /* run view */
+  #run{display:none;min-height:100vh;flex-direction:column}
+  #run.on{display:flex}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--muted);font-size:13px}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;text-align:center}
+  .phase{font-size:15px;font-weight:800;letter-spacing:.2em;padding:6px 14px;border-radius:999px;background:var(--prep);color:#111}
+  .name{font-size:clamp(26px,8vw,40px);font-weight:800;margin:14px 0 6px;line-height:1.25;word-break:break-word}
+  .ringbox{position:relative;width:min(78vw,340px);aspect-ratio:1;margin:10px 0}
+  .ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .ringbox .bgc{stroke:var(--line)}
+  .ringbox .fgc{stroke:var(--prep);transition:stroke .3s}
+  .time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:clamp(72px,26vw,128px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+  .dots{display:flex;gap:10px;margin:4px 0 10px}
+  .dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+  .dot.done{background:var(--muted)}
+  .dot.cur{background:var(--work)}
+  .next{font-size:15px;color:var(--muted);min-height:22px}
+  .next b{color:var(--text)}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:0 16px}
+  .bar i{display:block;height:100%;width:0;background:var(--accent)}
+  .controls{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;padding:16px}
+  .controls button{padding:18px 8px}
+  #pauseBtn{background:var(--text)}
+  body.work .phase{background:var(--work);color:#fff}
+  body.work .fgc{stroke:var(--work)}
+  body.rest .phase{background:var(--rest);color:#062}
+  body.rest .fgc{stroke:var(--rest)}
+  body.rest .dot.cur{background:var(--rest)}
+  .paused .time{opacity:.4}
+  #done{display:none;text-align:center;padding:60px 16px}
+  #done.on{display:block}
+  #done h2{font-size:30px;margin:10px 0}
+  .list{max-height:240px;overflow:auto;margin-top:8px;font-size:14px}
+  .list div{padding:6px 4px;border-bottom:1px solid var(--line);display:flex;gap:8px}
+  .list div span{color:var(--muted);min-width:2.2em;text-align:right}
+  .list div.cur{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- 設定画面 -->
+<div id="setup" class="wrap">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <h1 style="display:flex;align-items:center;gap:10px"><img src="icon-192.png" alt="" width="34" height="34" style="border-radius:9px">インターバルタイマー</h1>
+    <button class="ghost small fsBtn" type="button">⛶ 全画面</button>
+  </div>
+  <p class="sub">1メニュー ＝ 運動＋インターバル × セット数。名前をつけたメニューを順番に連続で回します。</p>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>運動（秒）</label><input id="work" type="number" min="1" inputmode="numeric"></div>
+      <div><label>インターバル（秒）</label><input id="rest" type="number" min="0" inputmode="numeric"></div>
+      <div><label>セット数 / メニュー</label><input id="sets" type="number" min="1" inputmode="numeric"></div>
+      <div><label>メニュー数</label><input id="count" type="number" min="1" max="200" inputmode="numeric"></div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div><label>開始前カウント（秒）</label><input id="prep" type="number" min="0" inputmode="numeric"></div>
+      <div style="display:flex;align-items:flex-end"><p class="total" style="margin:0 0 6px">合計 <b id="totalTime">--</b></p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <label style="margin:0">メニュー名（1行に1つ）<span id="nameCount"></span></label>
+      <button class="ghost small" id="fillBtn">空欄を番号で埋める</button>
+    </div>
+    <textarea id="names" style="margin-top:8px" placeholder="スクワット&#10;腕立て伏せ&#10;プランク&#10;…"></textarea>
+    <p class="hint">足りない行は「メニュー 12」のように自動で名前がつきます。入力内容はこのブラウザに保存されます。</p>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="optSound"> 音</label>
+      <label class="toggle"><input type="checkbox" id="optVoice"> 音声で名前を読み上げ</label>
+      <label class="toggle"><input type="checkbox" id="optVibe"> 振動</label>
+      <label class="toggle fsOpt"><input type="checkbox" id="optFs"> スタート時に全画面</label>
+    </div>
+  </div>
+
+  <button class="primary" id="startBtn">スタート</button>
+</div>
+
+<!-- 実行画面 -->
+<div id="run">
+  <div class="topbar">
+    <span id="blockInfo">メニュー 1 / 45</span>
+    <span style="display:flex;align-items:center;gap:10px">残り <b id="remainAll">--:--</b>
+      <button class="ghost small fsBtn" type="button" style="padding:6px 10px">⛶</button></span>
+  </div>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="stage">
+    <div class="phase" id="phase">準備</div>
+    <div class="name" id="curName">—</div>
+    <div class="dots" id="dots"></div>
+    <div class="ringbox">
+      <svg viewBox="0 0 100 100">
+        <circle class="bgc" cx="50" cy="50" r="45" fill="none" stroke-width="6"/>
+        <circle class="fgc" id="ring" cx="50" cy="50" r="45" fill="none" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="282.743" stroke-dashoffset="0"/>
+      </svg>
+      <div class="time" id="time">30</div>
+    </div>
+    <div class="next" id="next"></div>
+  </div>
+  <div class="controls">
+    <button class="ghost" id="prevBtn">◀︎ 戻る</button>
+    <button id="pauseBtn">一時停止</button>
+    <button class="ghost" id="skipBtn">次へ ▶︎</button>
+  </div>
+  <div style="padding:0 16px 16px">
+    <details>
+      <summary style="color:var(--muted);font-size:13px;cursor:pointer">メニュー一覧 / 終了</summary>
+      <div class="list" id="list"></div>
+      <button class="ghost" id="quitBtn" style="width:100%;margin-top:10px">終了して設定に戻る</button>
+    </details>
+  </div>
+</div>
+
+<!-- 完了画面 -->
+<div id="done">
+  <div style="font-size:56px">🎉</div>
+  <h2>完了！</h2>
+  <p class="sub" id="doneInfo"></p>
+  <button class="primary" id="backBtn" style="max-width:320px">設定に戻る</button>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const DEF = {work:30, rest:10, sets:3, count:45, prep:5, names:"", sound:true, voice:true, vibe:true, fs:true};
+  const KEY = "interval45-settings-v1";
+
+  // ---------- 設定の保存・読込 ----------
+  let cfg = Object.assign({}, DEF);
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) cfg = Object.assign(cfg, s); } catch(e){}
+
+  const fields = ["work","rest","sets","count","prep"];
+  fields.forEach(f => $(f).value = cfg[f]);
+  $("names").value = cfg.names;
+  $("optSound").checked = cfg.sound; $("optVoice").checked = cfg.voice; $("optVibe").checked = cfg.vibe;
+  $("optFs").checked = cfg.fs;
+
+  // ---------- 全画面 ----------
+  const docEl = document.documentElement;
+  const fsSupported = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen);
+  const isStandalone = (window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches)) || navigator.standalone;
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  function enterFs(){
+    try {
+      const p = docEl.requestFullscreen ? docEl.requestFullscreen({navigationUI:"hide"}) : docEl.webkitRequestFullscreen();
+      if (p && p.catch) p.catch(()=>{});
+    } catch(e){}
+  }
+  function exitFs(){
+    try { const p = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
+  }
+  function toggleFs(){ fsEl() ? exitFs() : enterFs(); }
+  function updateFsBtns(){
+    document.querySelectorAll(".fsBtn").forEach(b => {
+      b.style.display = (fsSupported && !isStandalone) ? "" : "none";
+      b.textContent = b.textContent.length > 2 ? (fsEl() ? "⛶ 全画面解除" : "⛶ 全画面") : "⛶";
+    });
+    document.querySelectorAll(".fsOpt").forEach(l => l.style.display = (fsSupported && !isStandalone) ? "" : "none");
+  }
+  document.querySelectorAll(".fsBtn").forEach(b => b.onclick = toggleFs);
+  document.addEventListener("fullscreenchange", updateFsBtns);
+  document.addEventListener("webkitfullscreenchange", updateFsBtns);
+  updateFsBtns();
+
+  // オフライン用（ホーム画面アプリとして使う時）
+  if ("serviceWorker" in navigator && location.protocol === "https:"){
+    try { navigator.serviceWorker.register("sw.js").catch(()=>{}); } catch(e){}
+  }
+
+  function readCfg(){
+    const n = (id, min, d) => { const v = parseInt($(id).value, 10); return isNaN(v) ? d : Math.max(min, v); };
+    cfg.work = n("work",1,30); cfg.rest = n("rest",0,10); cfg.sets = n("sets",1,3);
+    cfg.count = Math.min(200, n("count",1,45)); cfg.prep = n("prep",0,5);
+    cfg.names = $("names").value;
+    cfg.sound = $("optSound").checked; cfg.voice = $("optVoice").checked; cfg.vibe = $("optVibe").checked;
+    cfg.fs = $("optFs").checked;
+    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch(e){}
+  }
+  function nameList(){
+    const lines = cfg.names.split("\n").map(s => s.trim());
+    const out = [];
+    for (let i = 0; i < cfg.count; i++) out.push(lines[i] ? lines[i] : "メニュー " + (i+1));
+    return out;
+  }
+  function fmt(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+    return h ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+  }
+  function refreshSummary(){
+    readCfg();
+    const steps = buildSteps(nameList());
+    const tot = steps.reduce((a,s)=>a+s.dur,0);
+    $("totalTime").textContent = fmt(tot);
+    const filled = cfg.names.split("\n").filter(s=>s.trim()).length;
+    $("nameCount").textContent = `（${filled} / ${cfg.count}）`;
+  }
+  [...fields, "names"].forEach(f => $(f).addEventListener("input", refreshSummary));
+  ["optSound","optVoice","optVibe","optFs"].forEach(f => $(f).addEventListener("change", refreshSummary));
+  $("fillBtn").onclick = () => {
+    readCfg();
+    $("names").value = nameList().join("\n");
+    refreshSummary();
+  };
+
+  // ---------- ステップ列を作る ----------
+  // 各メニュー：運動 → インターバル を セット数ぶん。最後の最後のインターバルだけ省略。
+  function buildSteps(names){
+    const st = [];
+    if (cfg.prep > 0) st.push({type:"prep", dur:cfg.prep, block:0, set:0});
+    names.forEach((nm, b) => {
+      for (let s = 1; s <= cfg.sets; s++){
+        st.push({type:"work", dur:cfg.work, block:b, set:s});
+        const last = (b === names.length-1 && s === cfg.sets);
+        if (cfg.rest > 0 && !last) st.push({type:"rest", dur:cfg.rest, block:b, set:s});
+      }
+    });
+    return st;
+  }
+
+  // ---------- 音・音声・振動 ----------
+  let actx = null;
+  function initAudio(){
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+    } catch(e){ actx = null; }
+  }
+  function beep(freq, ms, vol){
+    if (!cfg.sound || !actx) return;
+    try {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = freq;
+      const t = actx.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.4, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + ms/1000);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + ms/1000 + 0.02);
+    } catch(e){}
+  }
+  function say(text){
+    if (!cfg.voice || !("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP"; u.rate = 1.05;
+      speechSynthesis.speak(u);
+    } catch(e){}
+  }
+  function vibe(p){ if (cfg.vibe && navigator.vibrate) try{ navigator.vibrate(p); }catch(e){} }
+
+  // 画面スリープ防止
+  let wakeLock = null;
+  async function keepAwake(){
+    try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch(e){}
+  }
+  function releaseAwake(){ try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null; }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && running) keepAwake();
+  });
+
+  // ---------- タイマー本体 ----------
+  let names = [], steps = [], idx = 0, endAt = 0, remainMs = 0, running = false, timerId = null, lastSec = -1;
+  const CIRC = 282.743;
+
+  function enterStep(i, announce){
+    idx = i;
+    const st = steps[idx];
+    remainMs = st.dur * 1000;
+    endAt = performance.now() + remainMs;
+    lastSec = -1;
+    if (announce){
+      if (st.type === "work"){
+        beep(1046, 450, 0.5); vibe([250]);
+        if (st.set === 1) say(names[st.block]);
+      } else if (st.type === "rest"){
+        beep(660, 300, 0.4); vibe([120,80,120]);
+        if (st.set === cfg.sets && names[st.block+1]) say("次は、" + names[st.block+1]);
+      } else if (st.type === "prep"){
+        say("まもなく開始。最初は、" + names[0]);
+      }
+    }
+    renderStatic();
+    renderTick();
+  }
+
+  function renderStatic(){
+    const st = steps[idx];
+    document.body.classList.remove("work","rest","prep");
+    document.body.classList.add(st.type);
+    $("phase").textContent = st.type === "work" ? "運動" : st.type === "rest" ? "インターバル" : "準備";
+    $("curName").textContent = names[st.block];
+    $("blockInfo").textContent = `メニュー ${st.block+1} / ${names.length}`;
+    // セットの丸
+    const d = $("dots"); d.innerHTML = "";
+    for (let s = 1; s <= cfg.sets; s++){
+      const el = document.createElement("div");
+      el.className = "dot" + (st.type === "prep" ? "" : s < st.set ? " done" : s === st.set ? (st.type==="rest" ? " done cur" : " cur") : "");
+      d.appendChild(el);
+    }
+    // 次の案内
+    let nx = "";
+    if (st.type === "prep") nx = `セット 1 / ${cfg.sets} から`;
+    else if (st.type === "work") nx = `セット ${st.set} / ${cfg.sets}`;
+    else {
+      const n = steps[idx+1];
+      if (n && n.block !== st.block) nx = `次：<b>${esc(names[n.block])}</b>`;
+      else nx = `次：セット ${st.set+1} / ${cfg.sets}`;
+    }
+    $("next").innerHTML = nx;
+    // 一覧
+    const items = $("list").children;
+    for (let i = 0; i < items.length; i++) items[i].classList.toggle("cur", i === st.block);
+  }
+
+  function renderTick(){
+    const st = steps[idx];
+    const ms = running ? Math.max(0, endAt - performance.now()) : remainMs;
+    const sec = Math.ceil(ms/1000);
+    $("time").textContent = sec;
+    $("ring").setAttribute("stroke-dashoffset", (CIRC * (1 - ms/(st.dur*1000))).toFixed(2));
+    let rest = ms/1000;
+    for (let i = idx+1; i < steps.length; i++) rest += steps[i].dur;
+    $("remainAll").textContent = fmt(rest);
+    const total = steps.reduce((a,s)=>a+s.dur,0);
+    $("barFill").style.width = (100 * (1 - rest/total)).toFixed(2) + "%";
+    // 残り3,2,1でカウント音
+    if (running && sec !== lastSec){
+      if (sec <= 3 && sec >= 1 && st.dur > 3) beep(880, 120, 0.3);
+      lastSec = sec;
+    }
+  }
+
+  function loop(){
+    if (!running) return;
+    let now = performance.now();
+    // バックグラウンド復帰時など、複数ステップ経過していてもまとめて進める
+    let advanced = false;
+    while (now >= endAt){
+      if (idx >= steps.length - 1){ finish(); return; }
+      const over = now - endAt;
+      enterStep(idx+1, !advanced || over < 1000);
+      endAt -= over; // ずれを持ち越さない
+      advanced = true;
+      now = performance.now();
+    }
+    renderTick();
+  }
+
+  function start(){
+    readCfg();
+    initAudio();
+    if (cfg.fs && fsSupported && !isStandalone && !fsEl()) enterFs();
+    names = nameList();
+    steps = buildSteps(names);
+    $("list").innerHTML = names.map((n,i)=>`<div><span>${i+1}</span>${esc(n)}</div>`).join("");
+    $("setup").style.display = "none"; $("done").classList.remove("on");
+    $("run").classList.add("on");
+    running = true;
+    $("pauseBtn").textContent = "一時停止"; $("run").classList.remove("paused");
+    enterStep(0, true);
+    clearInterval(timerId); timerId = setInterval(loop, 100);
+    keepAwake();
+  }
+
+  function togglePause(){
+    initAudio();
+    if (running){
+      remainMs = Math.max(0, endAt - performance.now());
+      running = false;
+      $("pauseBtn").textContent = "再開"; $("run").classList.add("paused");
+      try{ speechSynthesis.cancel(); }catch(e){}
+      releaseAwake();
+    } else {
+      endAt = performance.now() + remainMs;
+      running = true; lastSec = -1;
+      $("pauseBtn").textContent = "一時停止"; $("run").classList.remove("paused");
+      keepAwake();
+    }
+    renderTick();
+  }
+
+  function jump(delta){
+    initAudio();
+    let i = idx + delta;
+    if (delta < 0){
+      // 経過3秒以上なら今のステップの頭へ、それ以外は前へ
+      const st = steps[idx];
+      const elapsed = st.dur*1000 - (running ? endAt - performance.now() : remainMs);
+      if (elapsed > 3000) i = idx;
+    }
+    if (i < 0) i = 0;
+    if (i >= steps.length){ finish(); return; }
+    enterStep(i, true);
+    if (!running){ remainMs = steps[idx].dur*1000; renderTick(); }
+  }
+
+  function finish(){
+    running = false; clearInterval(timerId); releaseAwake();
+    beep(1046,200,0.5); setTimeout(()=>beep(1318,200,0.5),220); setTimeout(()=>beep(1568,500,0.5),440);
+    vibe([200,100,200,100,400]);
+    say("お疲れさまでした");
+    document.body.classList.remove("work","rest","prep");
+    $("run").classList.remove("on");
+    $("doneInfo").textContent = `${names.length} メニュー × ${cfg.sets} セット　合計 ${fmt(steps.reduce((a,s)=>a+s.dur,0))}`;
+    $("done").classList.add("on");
+  }
+
+  function quit(){
+    running = false; clearInterval(timerId); releaseAwake();
+    try{ speechSynthesis.cancel(); }catch(e){}
+    document.body.classList.remove("work","rest","prep");
+    $("run").classList.remove("on"); $("done").classList.remove("on");
+    $("setup").style.display = "block";
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+  $("startBtn").onclick = start;
+  $("pauseBtn").onclick = togglePause;
+  $("skipBtn").onclick = () => jump(1);
+  $("prevBtn").onclick = () => jump(-1);
+  $("quitBtn").onclick = quit;
+  $("backBtn").onclick = quit;
+
+  refreshSummary();
+})();
+</script>
+</body>
+</html>
