@@ -21,13 +21,15 @@
   html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
   body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  body.lock{overflow:hidden}
   .wrap{max-width:560px;margin:0 auto;padding:18px 16px 28px}
   h1{font-size:20px;margin:6px 0 4px;letter-spacing:.02em}
   .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 4px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-  input[type=number],textarea{width:100%;background:#0d0f11;color:var(--text);border:1px solid var(--line);
+  input[type=number],input[type=text],textarea{width:100%;background:#0d0f11;color:var(--text);border:1px solid var(--line);
     border-radius:10px;padding:10px;font-size:16px;font-family:inherit}
   textarea{min-height:220px;line-height:1.6;resize:vertical}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -42,29 +44,75 @@
   button.small{padding:8px 12px;font-size:13px;font-weight:600}
   .hint{font-size:12px;color:var(--muted);margin-top:6px}
 
-  /* run view */
-  #run{display:none;min-height:100vh;flex-direction:column}
+  /* 写真つきメニュー一覧（設定画面） */
+  .mlist{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:420px;overflow:auto}
+  .mrow{display:flex;align-items:center;gap:10px;padding:6px;border-radius:10px;background:#0d0f11;border:1px solid var(--line);cursor:pointer;text-align:left}
+  .mrow .no{color:var(--muted);font-size:12px;min-width:1.8em;text-align:right}
+  .thumb{width:48px;height:48px;border-radius:8px;background:#22262a center/cover no-repeat;flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px}
+  .mrow .t{flex:1;min-width:0}
+  .mrow .t b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mrow .t small{color:var(--muted);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* 編集シート */
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:20;align-items:flex-end;justify-content:center}
+  .sheet.on{display:flex}
+  .sheet .panel{background:var(--panel);width:100%;max-width:560px;max-height:92dvh;overflow:auto;border-radius:18px 18px 0 0;
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+  .phgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+  .ph{position:relative;aspect-ratio:1;border-radius:10px;background:#22262a center/cover no-repeat}
+  .ph button{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;border-radius:50%;
+    background:rgba(0,0,0,.7);color:#fff;font-size:15px;line-height:28px}
+  .ph .ord{position:absolute;left:4px;bottom:4px;display:flex;gap:4px}
+  .ph .ord button{position:static;width:26px;height:26px;line-height:26px;font-size:12px}
+  .addph{aspect-ratio:1;border:2px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;color:var(--muted);font-size:13px;cursor:pointer;gap:4px}
+  .addph span{font-size:28px;line-height:1}
+  .sheet textarea{min-height:90px}
+
+  /* 実行画面 */
+  #run{display:none;height:100vh;height:100dvh;flex-direction:column;overflow:hidden}
   #run.on{display:flex}
-  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--muted);font-size:13px}
-  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;text-align:center}
-  .phase{font-size:15px;font-weight:800;letter-spacing:.2em;padding:6px 14px;border-radius:999px;background:var(--prep);color:#111}
-  .name{font-size:clamp(26px,8vw,40px);font-weight:800;margin:14px 0 6px;line-height:1.25;word-break:break-word}
-  .ringbox{position:relative;width:min(78vw,340px);aspect-ratio:1;margin:10px 0}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;color:var(--muted);font-size:13px}
+  .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;text-align:center}
+  .phase{font-size:14px;font-weight:800;letter-spacing:.2em;padding:5px 14px;border-radius:999px;background:var(--prep);color:#111}
+  .name{font-size:clamp(26px,8vw,40px);font-weight:800;margin:10px 0 4px;line-height:1.25;word-break:break-word}
+  .media{display:none;width:100%;max-width:520px;margin:6px 0 4px}
+  .has-media .media{display:block}
+  .photo{position:relative;width:100%;height:34dvh;border-radius:14px;background:#0b0c0e;overflow:hidden;touch-action:pan-y}
+  .photo img{width:100%;height:100%;object-fit:contain;display:block}
+  .photo .tag{position:absolute;left:8px;top:8px;background:var(--rest);color:#062;font-size:12px;font-weight:800;
+    padding:4px 10px;border-radius:999px;display:none}
+  .photo.nextp .tag{display:block}
+  .photo .pdots{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:center;gap:6px}
+  .photo .pdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}
+  .photo .pdots i.on{background:#fff}
+  .photo .zoom{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:4px 8px;border-radius:8px}
+  .desc{font-size:14px;color:#d6d6d1;line-height:1.5;margin-top:6px;max-height:4.5em;overflow:auto;text-align:left;white-space:pre-wrap}
+  .desc:empty{display:none}
+  .ringbox{position:relative;width:min(78vw,340px);aspect-ratio:1;margin:8px 0}
+  .has-media .ringbox{width:min(46vw,24dvh)}
+  .has-media .name{font-size:clamp(22px,6.5vw,32px);margin-top:8px}
   .ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
   .ringbox .bgc{stroke:var(--line)}
   .ringbox .fgc{stroke:var(--prep);transition:stroke .3s}
   .time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     font-size:clamp(72px,26vw,128px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
-  .dots{display:flex;gap:10px;margin:4px 0 10px}
+  .has-media .time{font-size:min(17vw,9dvh)}
+  .meta{display:flex;align-items:center;gap:14px}
+  .has-media .ringwrap{display:flex;align-items:center;gap:16px}
+  .dots{display:flex;gap:10px;margin:4px 0 8px;justify-content:center}
   .dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
   .dot.done{background:var(--muted)}
   .dot.cur{background:var(--work)}
   .next{font-size:15px;color:var(--muted);min-height:22px}
   .next b{color:var(--text)}
+  .side{display:flex;flex-direction:column;align-items:center}
+  .has-media .side{align-items:flex-start;text-align:left}
   .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:0 16px}
   .bar i{display:block;height:100%;width:0;background:var(--accent)}
-  .controls{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;padding:16px}
-  .controls button{padding:18px 8px}
+  .controls{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;padding:12px 16px}
+  .controls button{padding:16px 8px}
   #pauseBtn{background:var(--text)}
   body.work .phase{background:var(--work);color:#fff}
   body.work .fgc{stroke:var(--work)}
@@ -75,10 +123,25 @@
   #done{display:none;text-align:center;padding:60px 16px}
   #done.on{display:block}
   #done h2{font-size:30px;margin:10px 0}
-  .list{max-height:240px;overflow:auto;margin-top:8px;font-size:14px}
+  .list{max-height:200px;overflow:auto;margin-top:8px;font-size:14px}
   .list div{padding:6px 4px;border-bottom:1px solid var(--line);display:flex;gap:8px}
   .list div span{color:var(--muted);min-width:2.2em;text-align:right}
   .list div.cur{color:var(--accent);font-weight:700}
+
+  /* 写真の拡大表示 */
+  #lightbox{position:fixed;inset:0;background:#000;z-index:30;display:none;touch-action:pan-y}
+  #lightbox.on{display:block}
+  #lightbox img{width:100%;height:100%;object-fit:contain}
+  #lbTime{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));background:rgba(0,0,0,.6);
+    border:3px solid var(--prep);border-radius:14px;padding:4px 14px;font-size:40px;font-weight:800;font-variant-numeric:tabular-nums}
+  body.work #lbTime{border-color:var(--work)}
+  body.rest #lbTime{border-color:var(--rest)}
+  #lbClose{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top));background:rgba(0,0,0,.6);color:#fff;padding:10px 14px}
+  #lbDesc{position:absolute;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(transparent,rgba(0,0,0,.85) 30%);font-size:15px;line-height:1.5;white-space:pre-wrap;max-height:40%;overflow:auto}
+  #lbDesc:empty{display:none}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;
+    border-radius:10px;font-size:14px;z-index:40;display:none}
 </style>
 </head>
 <body>
@@ -110,7 +173,13 @@
       <button class="ghost small" id="fillBtn">空欄を番号で埋める</button>
     </div>
     <textarea id="names" style="margin-top:8px" placeholder="スクワット&#10;腕立て伏せ&#10;プランク&#10;…"></textarea>
-    <p class="hint">足りない行は「メニュー 12」のように自動で名前がつきます。入力内容はこのブラウザに保存されます。</p>
+    <p class="hint">足りない行は「メニュー 12」のように自動で名前がつきます。</p>
+  </div>
+
+  <div class="card">
+    <h2>写真と説明</h2>
+    <p class="hint" style="margin-top:0">メニューをタップすると、写真（複数可）と説明文を登録できます。写真と説明はメニューの<b>番号</b>にひもづきます。</p>
+    <div class="mlist" id="mlist"></div>
   </div>
 
   <div class="card">
@@ -119,10 +188,33 @@
       <label class="toggle"><input type="checkbox" id="optVoice"> 音声で名前を読み上げ</label>
       <label class="toggle"><input type="checkbox" id="optVibe"> 振動</label>
       <label class="toggle fsOpt"><input type="checkbox" id="optFs"> スタート時に全画面</label>
+      <label class="toggle"><input type="checkbox" id="optSlide"> 写真が複数なら自動で切り替え</label>
     </div>
   </div>
 
   <button class="primary" id="startBtn">スタート</button>
+  <p class="hint" id="storageNote">写真と設定はこの端末のこのブラウザ内に保存されます（サーバーには送られません）。</p>
+</div>
+
+<!-- 写真・説明の編集シート -->
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <b id="edNo" style="color:var(--muted)">#1</b>
+      <div class="row" style="gap:6px">
+        <button class="ghost small" id="edPrev">◀︎ 前</button>
+        <button class="ghost small" id="edNext">次 ▶︎</button>
+        <button class="small" id="edClose">完了</button>
+      </div>
+    </div>
+    <label style="margin-top:12px">メニュー名</label>
+    <input type="text" id="edName" placeholder="例：スクワット">
+    <label style="margin-top:12px">写真（タイマー中に表示）</label>
+    <div class="phgrid" id="edPhotos"></div>
+    <input type="file" id="edFile" accept="image/*" multiple style="display:none">
+    <label style="margin-top:6px">説明（フォームのポイントなど）</label>
+    <textarea id="edDesc" placeholder="例：膝がつま先より前に出ないように。背中はまっすぐ。"></textarea>
+  </div>
 </div>
 
 <!-- 実行画面 -->
@@ -136,29 +228,50 @@
   <div class="stage">
     <div class="phase" id="phase">準備</div>
     <div class="name" id="curName">—</div>
-    <div class="dots" id="dots"></div>
-    <div class="ringbox">
-      <svg viewBox="0 0 100 100">
-        <circle class="bgc" cx="50" cy="50" r="45" fill="none" stroke-width="6"/>
-        <circle class="fgc" id="ring" cx="50" cy="50" r="45" fill="none" stroke-width="6" stroke-linecap="round"
-          stroke-dasharray="282.743" stroke-dashoffset="0"/>
-      </svg>
-      <div class="time" id="time">30</div>
+    <div class="media">
+      <div class="photo" id="photo">
+        <img id="photoImg" alt="">
+        <span class="tag">次のメニュー</span>
+        <span class="zoom">タップで拡大</span>
+        <div class="pdots" id="pdots"></div>
+      </div>
+      <div class="desc" id="desc"></div>
     </div>
-    <div class="next" id="next"></div>
+    <div class="ringwrap">
+      <div class="ringbox">
+        <svg viewBox="0 0 100 100">
+          <circle class="bgc" cx="50" cy="50" r="45" fill="none" stroke-width="6"/>
+          <circle class="fgc" id="ring" cx="50" cy="50" r="45" fill="none" stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="282.743" stroke-dashoffset="0"/>
+        </svg>
+        <div class="time" id="time">30</div>
+      </div>
+      <div class="side">
+        <div class="dots" id="dots"></div>
+        <div class="next" id="next"></div>
+      </div>
+    </div>
   </div>
   <div class="controls">
     <button class="ghost" id="prevBtn">◀︎ 戻る</button>
     <button id="pauseBtn">一時停止</button>
     <button class="ghost" id="skipBtn">次へ ▶︎</button>
   </div>
-  <div style="padding:0 16px 16px">
+  <div style="padding:0 16px 12px">
     <details>
       <summary style="color:var(--muted);font-size:13px;cursor:pointer">メニュー一覧 / 終了</summary>
       <div class="list" id="list"></div>
       <button class="ghost" id="quitBtn" style="width:100%;margin-top:10px">終了して設定に戻る</button>
     </details>
   </div>
+</div>
+
+<!-- 写真の拡大表示 -->
+<div id="lightbox">
+  <img id="lbImg" alt="">
+  <button id="lbClose" type="button">✕ 閉じる</button>
+  <div id="lbTime">--</div>
+  <div id="lbDesc"></div>
 </div>
 
 <!-- 完了画面 -->
@@ -168,66 +281,39 @@
   <p class="sub" id="doneInfo"></p>
   <button class="primary" id="backBtn" style="max-width:320px">設定に戻る</button>
 </div>
+<div id="toast"></div>
 
 <script>
 (function(){
   const $ = id => document.getElementById(id);
-  const DEF = {work:30, rest:10, sets:3, count:45, prep:5, names:"", sound:true, voice:true, vibe:true, fs:true};
+  const DEF = {work:30, rest:10, sets:3, count:45, prep:5, names:"", sound:true, voice:true, vibe:true, fs:true, slide:true, desc:{}};
   const KEY = "interval45-settings-v1";
+  function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(toast.t); toast.t=setTimeout(()=>t.style.display="none",2200); }
 
   // ---------- 設定の保存・読込 ----------
   let cfg = Object.assign({}, DEF);
   try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) cfg = Object.assign(cfg, s); } catch(e){}
+  if (!cfg.desc || typeof cfg.desc !== "object") cfg.desc = {};
 
   const fields = ["work","rest","sets","count","prep"];
   fields.forEach(f => $(f).value = cfg[f]);
   $("names").value = cfg.names;
   $("optSound").checked = cfg.sound; $("optVoice").checked = cfg.voice; $("optVibe").checked = cfg.vibe;
-  $("optFs").checked = cfg.fs;
+  $("optFs").checked = cfg.fs; $("optSlide").checked = cfg.slide;
 
-  // ---------- 全画面 ----------
-  const docEl = document.documentElement;
-  const fsSupported = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen);
-  const isStandalone = (window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches)) || navigator.standalone;
-  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
-  function enterFs(){
-    try {
-      const p = docEl.requestFullscreen ? docEl.requestFullscreen({navigationUI:"hide"}) : docEl.webkitRequestFullscreen();
-      if (p && p.catch) p.catch(()=>{});
-    } catch(e){}
-  }
-  function exitFs(){
-    try { const p = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
-  }
-  function toggleFs(){ fsEl() ? exitFs() : enterFs(); }
-  function updateFsBtns(){
-    document.querySelectorAll(".fsBtn").forEach(b => {
-      b.style.display = (fsSupported && !isStandalone) ? "" : "none";
-      b.textContent = b.textContent.length > 2 ? (fsEl() ? "⛶ 全画面解除" : "⛶ 全画面") : "⛶";
-    });
-    document.querySelectorAll(".fsOpt").forEach(l => l.style.display = (fsSupported && !isStandalone) ? "" : "none");
-  }
-  document.querySelectorAll(".fsBtn").forEach(b => b.onclick = toggleFs);
-  document.addEventListener("fullscreenchange", updateFsBtns);
-  document.addEventListener("webkitfullscreenchange", updateFsBtns);
-  updateFsBtns();
-
-  // オフライン用（ホーム画面アプリとして使う時）
-  if ("serviceWorker" in navigator && location.protocol === "https:"){
-    try { navigator.serviceWorker.register("sw.js").catch(()=>{}); } catch(e){}
-  }
-
+  function saveCfg(){ try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch(e){} }
   function readCfg(){
     const n = (id, min, d) => { const v = parseInt($(id).value, 10); return isNaN(v) ? d : Math.max(min, v); };
     cfg.work = n("work",1,30); cfg.rest = n("rest",0,10); cfg.sets = n("sets",1,3);
     cfg.count = Math.min(200, n("count",1,45)); cfg.prep = n("prep",0,5);
     cfg.names = $("names").value;
     cfg.sound = $("optSound").checked; cfg.voice = $("optVoice").checked; cfg.vibe = $("optVibe").checked;
-    cfg.fs = $("optFs").checked;
-    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch(e){}
+    cfg.fs = $("optFs").checked; cfg.slide = $("optSlide").checked;
+    saveCfg();
   }
+  function rawLines(){ return cfg.names.split("\n"); }
   function nameList(){
-    const lines = cfg.names.split("\n").map(s => s.trim());
+    const lines = rawLines().map(s => s.trim());
     const out = [];
     for (let i = 0; i < cfg.count; i++) out.push(lines[i] ? lines[i] : "メニュー " + (i+1));
     return out;
@@ -240,21 +326,201 @@
   function refreshSummary(){
     readCfg();
     const steps = buildSteps(nameList());
-    const tot = steps.reduce((a,s)=>a+s.dur,0);
-    $("totalTime").textContent = fmt(tot);
-    const filled = cfg.names.split("\n").filter(s=>s.trim()).length;
+    $("totalTime").textContent = fmt(steps.reduce((a,s)=>a+s.dur,0));
+    const filled = rawLines().filter(s=>s.trim()).length;
     $("nameCount").textContent = `（${filled} / ${cfg.count}）`;
+    renderMenuList();
   }
   [...fields, "names"].forEach(f => $(f).addEventListener("input", refreshSummary));
-  ["optSound","optVoice","optVibe","optFs"].forEach(f => $(f).addEventListener("change", refreshSummary));
-  $("fillBtn").onclick = () => {
-    readCfg();
-    $("names").value = nameList().join("\n");
-    refreshSummary();
-  };
+  ["optSound","optVoice","optVibe","optFs","optSlide"].forEach(f => $(f).addEventListener("change", refreshSummary));
+  $("fillBtn").onclick = () => { readCfg(); $("names").value = nameList().join("\n"); refreshSummary(); };
 
-  // ---------- ステップ列を作る ----------
-  // 各メニュー：運動 → インターバル を セット数ぶん。最後の最後のインターバルだけ省略。
+  // ---------- 写真の保存（IndexedDB） ----------
+  // photos[i] = [{type, buf}]（メニュー番号 i にひもづく）
+  const photos = {};          // i -> [Blob]
+  const urlCache = {};        // i -> [objectURL]
+  let db = null;
+  function openDB(){
+    return new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open("interval-timer", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("photos");
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      } catch(e){ rej(e); }
+    });
+  }
+  function idbReq(mode, fn){
+    return new Promise((res, rej) => {
+      if (!db) return res(null);
+      try {
+        const tx = db.transaction("photos", mode), st = tx.objectStore("photos");
+        const r = fn(st);
+        tx.oncomplete = () => res(r && r.result);
+        tx.onerror = () => rej(tx.error);
+      } catch(e){ rej(e); }
+    });
+  }
+  async function loadAllPhotos(){
+    try { db = await openDB(); } catch(e){ db = null; }
+    if (!db){ $("storageNote").textContent = "※このブラウザでは写真を保存できないため、ページを閉じると写真が消えます。"; return; }
+    try {
+      const keys = await idbReq("readonly", st => st.getAllKeys());
+      const vals = await idbReq("readonly", st => st.getAll());
+      (keys||[]).forEach((k, n) => {
+        const arr = vals[n] || [];
+        photos[k] = arr.map(p => new Blob([p.buf], {type: p.type || "image/jpeg"}));
+      });
+    } catch(e){}
+  }
+  async function savePhotos(i){
+    clearUrls(i);
+    if (!db) return;
+    try {
+      const arr = await Promise.all((photos[i]||[]).map(async b => ({type: b.type, buf: await b.arrayBuffer()})));
+      if (arr.length) await idbReq("readwrite", st => st.put(arr, i));
+      else await idbReq("readwrite", st => st.delete(i));
+    } catch(e){ toast("写真を保存できませんでした（容量不足の可能性）"); }
+  }
+  function clearUrls(i){ (urlCache[i]||[]).forEach(u => URL.revokeObjectURL(u)); delete urlCache[i]; }
+  function urlsFor(i){
+    if (!photos[i] || !photos[i].length) return [];
+    if (!urlCache[i]) urlCache[i] = photos[i].map(b => URL.createObjectURL(b));
+    return urlCache[i];
+  }
+  // 画像を長辺1280pxのJPEGに縮小
+  function shrink(file){
+    return new Promise(res => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.round(img.naturalWidth*sc), h = Math.round(img.naturalHeight*sc);
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        c.toBlob(b => res(b || file), "image/jpeg", 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+      img.src = url;
+    });
+  }
+
+  // ---------- 設定画面のメニュー一覧 ----------
+  function renderMenuList(){
+    const names = nameList(), box = $("mlist");
+    box.innerHTML = "";
+    names.forEach((nm, i) => {
+      const u = urlsFor(i), d = (cfg.desc[i] || "").trim();
+      const el = document.createElement("div");
+      el.className = "mrow";
+      el.innerHTML = `<span class="no">${i+1}</span>
+        <div class="thumb" ${u[0] ? `style="background-image:url('${u[0]}')"` : ""}>${u[0] ? "" : "＋"}</div>
+        <div class="t"><b>${esc(nm)}</b><small>${u.length ? "写真 " + u.length + "枚" : "写真なし"}${d ? "・" + esc(d.split("\n")[0]) : ""}</small></div>`;
+      el.onclick = () => openEditor(i);
+      box.appendChild(el);
+    });
+  }
+
+  // ---------- 編集シート ----------
+  let edIdx = 0;
+  function openEditor(i){
+    readCfg();
+    edIdx = i;
+    const names = nameList(), lines = rawLines();
+    $("edNo").textContent = `#${i+1} / ${names.length}`;
+    $("edName").value = (lines[i] || "").trim();
+    $("edName").placeholder = "メニュー " + (i+1);
+    $("edDesc").value = cfg.desc[i] || "";
+    $("edPrev").disabled = i === 0; $("edNext").disabled = i >= names.length-1;
+    renderEdPhotos();
+    $("sheet").classList.add("on"); document.body.classList.add("lock");
+  }
+  function commitEditor(){
+    // 名前をテキスト欄の該当行へ反映
+    const lines = rawLines();
+    while (lines.length <= edIdx) lines.push("");
+    lines[edIdx] = $("edName").value.trim();
+    while (lines.length && !lines[lines.length-1].trim()) lines.pop();
+    $("names").value = lines.join("\n");
+    const d = $("edDesc").value;
+    if (d.trim()) cfg.desc[edIdx] = d; else delete cfg.desc[edIdx];
+    readCfg();
+  }
+  function closeEditor(){
+    commitEditor();
+    $("sheet").classList.remove("on"); document.body.classList.remove("lock");
+    refreshSummary();
+  }
+  function renderEdPhotos(){
+    const g = $("edPhotos"); g.innerHTML = "";
+    const u = urlsFor(edIdx);
+    u.forEach((url, k) => {
+      const el = document.createElement("div");
+      el.className = "ph"; el.style.backgroundImage = `url('${url}')`;
+      el.innerHTML = `<button type="button" title="削除">✕</button>` +
+        (u.length > 1 ? `<div class="ord"><button type="button" data-d="-1">◀</button><button type="button" data-d="1">▶</button></div>` : "");
+      el.querySelector("button").onclick = async () => {
+        photos[edIdx].splice(k, 1); await savePhotos(edIdx); renderEdPhotos();
+      };
+      el.querySelectorAll(".ord button").forEach(b => b.onclick = async () => {
+        const to = k + parseInt(b.dataset.d, 10), arr = photos[edIdx];
+        if (to < 0 || to >= arr.length) return;
+        [arr[k], arr[to]] = [arr[to], arr[k]]; await savePhotos(edIdx); renderEdPhotos();
+      });
+      g.appendChild(el);
+    });
+    const add = document.createElement("div");
+    add.className = "addph"; add.innerHTML = "<span>＋</span>写真を追加";
+    add.onclick = () => $("edFile").click();
+    g.appendChild(add);
+  }
+  $("edFile").onchange = async e => {
+    const files = [...e.target.files]; e.target.value = "";
+    if (!files.length) return;
+    toast("写真を読み込み中…");
+    const blobs = (await Promise.all(files.map(shrink))).filter(Boolean);
+    photos[edIdx] = (photos[edIdx] || []).concat(blobs);
+    await savePhotos(edIdx);
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch(e){}
+    renderEdPhotos();
+    toast(`${blobs.length}枚追加しました`);
+  };
+  $("edClose").onclick = closeEditor;
+  $("edPrev").onclick = () => { commitEditor(); openEditor(edIdx-1); };
+  $("edNext").onclick = () => { commitEditor(); openEditor(edIdx+1); };
+  $("sheet").addEventListener("click", e => { if (e.target === $("sheet")) closeEditor(); });
+
+  // ---------- 全画面 ----------
+  const docEl = document.documentElement;
+  const fsSupported = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen);
+  const isStandalone = (window.matchMedia && (matchMedia("(display-mode: fullscreen)").matches || matchMedia("(display-mode: standalone)").matches)) || navigator.standalone;
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  function enterFs(){
+    try { const p = docEl.requestFullscreen ? docEl.requestFullscreen({navigationUI:"hide"}) : docEl.webkitRequestFullscreen(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
+  }
+  function exitFs(){
+    try { const p = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
+  }
+  function updateFsBtns(){
+    const show = fsSupported && !isStandalone;
+    document.querySelectorAll(".fsBtn").forEach(b => {
+      b.style.display = show ? "" : "none";
+      b.textContent = b.textContent.length > 2 ? (fsEl() ? "⛶ 全画面解除" : "⛶ 全画面") : "⛶";
+    });
+    document.querySelectorAll(".fsOpt").forEach(l => l.style.display = show ? "" : "none");
+  }
+  document.querySelectorAll(".fsBtn").forEach(b => b.onclick = () => fsEl() ? exitFs() : enterFs());
+  document.addEventListener("fullscreenchange", updateFsBtns);
+  document.addEventListener("webkitfullscreenchange", updateFsBtns);
+  updateFsBtns();
+
+  // オフライン用（ホーム画面アプリとして使う時）
+  if ("serviceWorker" in navigator && location.protocol === "https:"){
+    try { navigator.serviceWorker.register("sw.js").catch(()=>{}); } catch(e){}
+  }
+
+  // ---------- ステップ列 ----------
   function buildSteps(names){
     const st = [];
     if (cfg.prep > 0) st.push({type:"prep", dur:cfg.prep, block:0, set:0});
@@ -291,24 +557,68 @@
   }
   function say(text){
     if (!cfg.voice || !("speechSynthesis" in window)) return;
-    try {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "ja-JP"; u.rate = 1.05;
-      speechSynthesis.speak(u);
-    } catch(e){}
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; u.rate = 1.05; speechSynthesis.speak(u); } catch(e){}
   }
   function vibe(p){ if (cfg.vibe && navigator.vibrate) try{ navigator.vibrate(p); }catch(e){} }
 
-  // 画面スリープ防止
   let wakeLock = null;
-  async function keepAwake(){
-    try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch(e){}
-  }
+  async function keepAwake(){ try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch(e){} }
   function releaseAwake(){ try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null; }
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && running) keepAwake();
-  });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && running) keepAwake(); });
+
+  // ---------- 実行中の写真表示 ----------
+  let mediaBlock = -1, photoIdx = 0, slideTimer = null;
+  function mediaBlockFor(st){
+    if (st.type === "rest"){
+      const n = steps[idx+1];
+      if (n && n.block !== st.block) return n.block;
+    }
+    return st.block;
+  }
+  function showMedia(force){
+    const st = steps[idx], b = mediaBlockFor(st);
+    const isNext = b !== st.block;
+    $("photo").classList.toggle("nextp", isNext);
+    if (b === mediaBlock && !force) return;
+    mediaBlock = b; photoIdx = 0;
+    const u = urlsFor(b), d = (cfg.desc[b] || "").trim();
+    $("run").classList.toggle("has-media", u.length > 0 || !!d);
+    $("photo").style.display = u.length ? "" : "none";
+    $("desc").textContent = d;
+    $("lbDesc").textContent = d;
+    showPhoto();
+    clearInterval(slideTimer);
+    if (cfg.slide && u.length > 1) slideTimer = setInterval(() => movePhoto(1, true), 5000);
+  }
+  function showPhoto(){
+    const u = urlsFor(mediaBlock);
+    if (!u.length){ $("photoImg").removeAttribute("src"); $("lbImg").removeAttribute("src"); $("pdots").innerHTML = ""; if ($("lightbox").classList.contains("on")) closeLb(); return; }
+    photoIdx = (photoIdx + u.length) % u.length;
+    $("photoImg").src = u[photoIdx];
+    $("lbImg").src = u[photoIdx];
+    $("pdots").innerHTML = u.length > 1 ? u.map((_,k)=>`<i class="${k===photoIdx?"on":""}"></i>`).join("") : "";
+  }
+  function movePhoto(d, auto){
+    photoIdx += d; showPhoto();
+    if (!auto && cfg.slide && urlsFor(mediaBlock).length > 1){
+      clearInterval(slideTimer); slideTimer = setInterval(() => movePhoto(1, true), 5000);
+    }
+  }
+  function swipe(el, onTap){
+    let x0 = null, y0 = 0;
+    el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, {passive:true});
+    el.addEventListener("touchend", e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){ movePhoto(dx < 0 ? 1 : -1); e.preventDefault(); }
+    });
+    el.addEventListener("click", onTap);
+  }
+  function openLb(){ if (!urlsFor(mediaBlock).length) return; $("lightbox").classList.add("on"); }
+  function closeLb(){ $("lightbox").classList.remove("on"); }
+  swipe($("photo"), openLb);
+  swipe($("lbImg"), closeLb);
+  $("lbClose").onclick = closeLb;
 
   // ---------- タイマー本体 ----------
   let names = [], steps = [], idx = 0, endAt = 0, remainMs = 0, running = false, timerId = null, lastSec = -1;
@@ -342,14 +652,12 @@
     $("phase").textContent = st.type === "work" ? "運動" : st.type === "rest" ? "インターバル" : "準備";
     $("curName").textContent = names[st.block];
     $("blockInfo").textContent = `メニュー ${st.block+1} / ${names.length}`;
-    // セットの丸
     const d = $("dots"); d.innerHTML = "";
     for (let s = 1; s <= cfg.sets; s++){
       const el = document.createElement("div");
       el.className = "dot" + (st.type === "prep" ? "" : s < st.set ? " done" : s === st.set ? (st.type==="rest" ? " done cur" : " cur") : "");
       d.appendChild(el);
     }
-    // 次の案内
     let nx = "";
     if (st.type === "prep") nx = `セット 1 / ${cfg.sets} から`;
     else if (st.type === "work") nx = `セット ${st.set} / ${cfg.sets}`;
@@ -359,9 +667,9 @@
       else nx = `次：セット ${st.set+1} / ${cfg.sets}`;
     }
     $("next").innerHTML = nx;
-    // 一覧
     const items = $("list").children;
     for (let i = 0; i < items.length; i++) items[i].classList.toggle("cur", i === st.block);
+    showMedia(false);
   }
 
   function renderTick(){
@@ -369,13 +677,13 @@
     const ms = running ? Math.max(0, endAt - performance.now()) : remainMs;
     const sec = Math.ceil(ms/1000);
     $("time").textContent = sec;
+    $("lbTime").textContent = sec;
     $("ring").setAttribute("stroke-dashoffset", (CIRC * (1 - ms/(st.dur*1000))).toFixed(2));
     let rest = ms/1000;
     for (let i = idx+1; i < steps.length; i++) rest += steps[i].dur;
     $("remainAll").textContent = fmt(rest);
     const total = steps.reduce((a,s)=>a+s.dur,0);
     $("barFill").style.width = (100 * (1 - rest/total)).toFixed(2) + "%";
-    // 残り3,2,1でカウント音
     if (running && sec !== lastSec){
       if (sec <= 3 && sec >= 1 && st.dur > 3) beep(880, 120, 0.3);
       lastSec = sec;
@@ -384,14 +692,12 @@
 
   function loop(){
     if (!running) return;
-    let now = performance.now();
-    // バックグラウンド復帰時など、複数ステップ経過していてもまとめて進める
-    let advanced = false;
+    let now = performance.now(), advanced = false;
     while (now >= endAt){
       if (idx >= steps.length - 1){ finish(); return; }
       const over = now - endAt;
       enterStep(idx+1, !advanced || over < 1000);
-      endAt -= over; // ずれを持ち越さない
+      endAt -= over;
       advanced = true;
       now = performance.now();
     }
@@ -407,7 +713,7 @@
     $("list").innerHTML = names.map((n,i)=>`<div><span>${i+1}</span>${esc(n)}</div>`).join("");
     $("setup").style.display = "none"; $("done").classList.remove("on");
     $("run").classList.add("on");
-    running = true;
+    running = true; mediaBlock = -1;
     $("pauseBtn").textContent = "一時停止"; $("run").classList.remove("paused");
     enterStep(0, true);
     clearInterval(timerId); timerId = setInterval(loop, 100);
@@ -435,7 +741,6 @@
     initAudio();
     let i = idx + delta;
     if (delta < 0){
-      // 経過3秒以上なら今のステップの頭へ、それ以外は前へ
       const st = steps[idx];
       const elapsed = st.dur*1000 - (running ? endAt - performance.now() : remainMs);
       if (elapsed > 3000) i = idx;
@@ -446,23 +751,25 @@
     if (!running){ remainMs = steps[idx].dur*1000; renderTick(); }
   }
 
+  function stopAll(){
+    running = false; clearInterval(timerId); clearInterval(slideTimer); releaseAwake(); closeLb();
+    document.body.classList.remove("work","rest","prep");
+    $("run").classList.remove("on","has-media");
+  }
   function finish(){
-    running = false; clearInterval(timerId); releaseAwake();
+    stopAll();
     beep(1046,200,0.5); setTimeout(()=>beep(1318,200,0.5),220); setTimeout(()=>beep(1568,500,0.5),440);
     vibe([200,100,200,100,400]);
     say("お疲れさまでした");
-    document.body.classList.remove("work","rest","prep");
-    $("run").classList.remove("on");
     $("doneInfo").textContent = `${names.length} メニュー × ${cfg.sets} セット　合計 ${fmt(steps.reduce((a,s)=>a+s.dur,0))}`;
     $("done").classList.add("on");
   }
-
   function quit(){
-    running = false; clearInterval(timerId); releaseAwake();
+    stopAll();
     try{ speechSynthesis.cancel(); }catch(e){}
-    document.body.classList.remove("work","rest","prep");
-    $("run").classList.remove("on"); $("done").classList.remove("on");
+    $("done").classList.remove("on");
     $("setup").style.display = "block";
+    renderMenuList();
   }
 
   function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
@@ -475,6 +782,7 @@
   $("backBtn").onclick = quit;
 
   refreshSummary();
+  loadAllPhotos().then(renderMenuList);
 })();
 </script>
 </body>
