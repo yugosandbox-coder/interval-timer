@@ -74,33 +74,17 @@
   #run{display:none;height:100vh;height:100dvh;flex-direction:column;overflow:hidden}
   #run.on{display:flex}
   .topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;color:var(--muted);font-size:13px}
-  .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;text-align:center}
-  .phase{font-size:14px;font-weight:800;letter-spacing:.2em;padding:5px 14px;border-radius:999px;background:var(--prep);color:#111}
-  .name{font-size:clamp(26px,8vw,40px);font-weight:800;margin:10px 0 4px;line-height:1.25;word-break:break-word}
-  .media{display:none;width:100%;max-width:520px;margin:6px 0 4px}
-  .has-media .media{display:block}
-  .photo{position:relative;width:100%;height:34dvh;border-radius:14px;background:#0b0c0e;overflow:hidden;touch-action:pan-y}
-  .photo img{width:100%;height:100%;object-fit:contain;display:block}
-  .photo .tag{position:absolute;left:8px;top:8px;background:var(--rest);color:#062;font-size:12px;font-weight:800;
-    padding:4px 10px;border-radius:999px;display:none}
-  .photo.nextp .tag{display:block}
-  .photo .pdots{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:center;gap:6px}
-  .photo .pdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35)}
-  .photo .pdots i.on{background:#fff}
-  .photo .zoom{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:4px 8px;border-radius:8px}
-  .desc{font-size:14px;color:#d6d6d1;line-height:1.5;margin-top:6px;max-height:4.5em;overflow:auto;text-align:left;white-space:pre-wrap}
-  .desc:empty{display:none}
-  .ringbox{position:relative;width:min(78vw,340px);aspect-ratio:1;margin:8px 0}
-  .has-media .ringbox{width:min(46vw,24dvh)}
-  .has-media .name{font-size:clamp(22px,6.5vw,32px);margin-top:8px}
+  .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px 4px;text-align:center;overflow:hidden}
+  .phase{font-size:14px;font-weight:800;letter-spacing:.2em;padding:5px 14px;border-radius:999px;background:var(--prep);color:#111;flex:none}
+  .name{font-size:clamp(26px,8vw,40px);font-weight:800;margin:10px 0 4px;line-height:1.25;word-break:break-word;flex:none}
+  .media{display:none}
+  .ringbox{position:relative;width:min(78vw,340px,48dvh);aspect-ratio:1;margin:8px 0;flex:none}
   .ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
   .ringbox .bgc{stroke:var(--line)}
   .ringbox .fgc{stroke:var(--prep);transition:stroke .3s}
   .time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-size:clamp(72px,26vw,128px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
-  .has-media .time{font-size:min(17vw,9dvh)}
-  .meta{display:flex;align-items:center;gap:14px}
-  .has-media .ringwrap{display:flex;align-items:center;gap:16px}
+    font-size:min(26vw,128px,16dvh);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+  .ringwrap{flex:none;display:flex;flex-direction:column;align-items:center}
   .dots{display:flex;gap:10px;margin:4px 0 8px;justify-content:center}
   .dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
   .dot.done{background:var(--muted)}
@@ -108,7 +92,28 @@
   .next{font-size:15px;color:var(--muted);min-height:22px}
   .next b{color:var(--text)}
   .side{display:flex;flex-direction:column;align-items:center}
+
+  /* 写真あり：写真は残りの高さに合わせて伸び縮みし、タイマーとは重ならない */
+  .has-media .stage{justify-content:flex-start;padding-top:6px}
+  .has-media .name{font-size:clamp(20px,6vw,30px);margin:6px 0 6px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .has-media .media{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;width:100%;max-width:560px}
+  .photo{position:relative;flex:1 1 auto;min-height:64px;border-radius:14px;background:#0b0c0e;overflow:hidden;touch-action:pan-y;cursor:zoom-in}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+  .pdots{display:flex;justify-content:center;gap:6px;height:7px;margin-top:6px;flex:none}
+  .pdots:empty{display:none}
+  .pdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+  .pdots i.on{background:var(--text)}
+  .desc{flex:0 1 auto;min-height:1.5em;font-size:14px;color:#d6d6d1;line-height:1.5;margin-top:6px;max-height:4.5em;overflow:auto;text-align:left;white-space:pre-wrap}
+  .desc:empty{display:none}
+  .nexttag{display:none;align-self:center;background:var(--rest);color:#062;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;margin-bottom:6px;flex:none}
+  .media.nextp .nexttag{display:block}
+  .has-media .ringwrap{flex-direction:row;gap:16px;margin-top:8px}
+  .has-media .ringbox{width:min(38vw,21dvh,200px);margin:0}
+  .has-media .time{font-size:min(15vw,8dvh,76px)}
   .has-media .side{align-items:flex-start;text-align:left}
+  .has-media .dots{justify-content:flex-start}
+
   .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:0 16px}
   .bar i{display:block;height:100%;width:0;background:var(--accent)}
   .controls{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px;padding:12px 16px}
@@ -129,19 +134,45 @@
   .list div.cur{color:var(--accent);font-weight:700}
 
   /* 写真の拡大表示 */
-  #lightbox{position:fixed;inset:0;background:#000;z-index:30;display:none;touch-action:pan-y}
-  #lightbox.on{display:block}
-  #lightbox img{width:100%;height:100%;object-fit:contain}
-  #lbTime{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));background:rgba(0,0,0,.6);
-    border:3px solid var(--prep);border-radius:14px;padding:4px 14px;font-size:40px;font-weight:800;font-variant-numeric:tabular-nums}
+  /* 写真の拡大表示：上にタイマー、下に説明。写真とは重ならない */
+  #lightbox{position:fixed;inset:0;background:#000;z-index:30;display:none;flex-direction:column;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  #lightbox.on{display:flex}
+  .lbbar{flex:none;display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+  #lbClose{background:#222;color:#fff;padding:10px 14px}
+  #lbTime{background:#111;border:3px solid var(--prep);border-radius:14px;padding:2px 14px;font-size:36px;font-weight:800;font-variant-numeric:tabular-nums}
   body.work #lbTime{border-color:var(--work)}
   body.rest #lbTime{border-color:var(--rest)}
-  #lbClose{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top));background:rgba(0,0,0,.6);color:#fff;padding:10px 14px}
-  #lbDesc{position:absolute;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
-    background:linear-gradient(transparent,rgba(0,0,0,.85) 30%);font-size:15px;line-height:1.5;white-space:pre-wrap;max-height:40%;overflow:auto}
+  .lbimg{flex:1 1 auto;min-height:0;position:relative;touch-action:pan-y}
+  #lbImg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  #lbDesc{flex:none;padding:10px 16px 14px;font-size:15px;line-height:1.5;white-space:pre-wrap;max-height:30%;overflow:auto;color:#e6e6e1}
   #lbDesc:empty{display:none}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;
     border-radius:10px;font-size:14px;z-index:40;display:none}
+  /* 縦が短い画面 */
+  @media (max-height:640px){
+    .has-media .name{-webkit-line-clamp:1;font-size:clamp(18px,5.5vw,24px);margin:4px 0}
+    .has-media .desc{max-height:3em;font-size:13px}
+    .controls{padding:8px 16px}
+    .controls button{padding:12px 8px}
+  }
+  /* 横向きの時は写真を左、タイマーを右に */
+  @media (orientation:landscape){
+    .topbar{padding:6px 16px}
+    .controls{padding:6px 16px}
+    .controls button{padding:10px 8px}
+    .ringbox{width:min(56dvh,340px)}
+    .time{font-size:min(26vw,128px,24dvh)}
+    .has-media .stage{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
+      grid-template-rows:auto auto minmax(0,1fr);grid-template-areas:"media phase" "media name" "media ring";column-gap:20px;align-items:center;justify-items:center}
+    .has-media .phase{grid-area:phase;margin-top:2px}
+    .has-media .name{grid-area:name;-webkit-line-clamp:1;font-size:clamp(18px,3vw,26px);margin:4px 0}
+    .has-media .media{grid-area:media;height:100%;max-width:none;min-height:0}
+    .has-media .ringwrap{grid-area:ring;flex-direction:row;gap:12px;margin:0;align-self:center;min-height:0}
+    .has-media .ringbox{width:min(20vw,30dvh,220px)}
+    .has-media .time{font-size:min(9vw,15dvh,96px)}
+    .has-media .desc{max-height:3em}
+  }
 </style>
 </head>
 <body>
@@ -228,13 +259,10 @@
   <div class="stage">
     <div class="phase" id="phase">準備</div>
     <div class="name" id="curName">—</div>
-    <div class="media">
-      <div class="photo" id="photo">
-        <img id="photoImg" alt="">
-        <span class="tag">次のメニュー</span>
-        <span class="zoom">タップで拡大</span>
-        <div class="pdots" id="pdots"></div>
-      </div>
+    <div class="media" id="media">
+      <span class="nexttag">次のメニュー</span>
+      <div class="photo" id="photo"><img id="photoImg" alt=""></div>
+      <div class="pdots" id="pdots"></div>
       <div class="desc" id="desc"></div>
     </div>
     <div class="ringwrap">
@@ -268,9 +296,8 @@
 
 <!-- 写真の拡大表示 -->
 <div id="lightbox">
-  <img id="lbImg" alt="">
-  <button id="lbClose" type="button">✕ 閉じる</button>
-  <div id="lbTime">--</div>
+  <div class="lbbar"><button id="lbClose" type="button">✕ 閉じる</button><div id="lbTime">--</div></div>
+  <div class="lbimg" id="lbArea"><img id="lbImg" alt=""></div>
   <div id="lbDesc"></div>
 </div>
 
@@ -578,7 +605,7 @@
   function showMedia(force){
     const st = steps[idx], b = mediaBlockFor(st);
     const isNext = b !== st.block;
-    $("photo").classList.toggle("nextp", isNext);
+    $("media").classList.toggle("nextp", isNext);
     if (b === mediaBlock && !force) return;
     mediaBlock = b; photoIdx = 0;
     const u = urlsFor(b), d = (cfg.desc[b] || "").trim();
@@ -617,7 +644,7 @@
   function openLb(){ if (!urlsFor(mediaBlock).length) return; $("lightbox").classList.add("on"); }
   function closeLb(){ $("lightbox").classList.remove("on"); }
   swipe($("photo"), openLb);
-  swipe($("lbImg"), closeLb);
+  swipe($("lbArea"), closeLb);
   $("lbClose").onclick = closeLb;
 
   // ---------- タイマー本体 ----------
